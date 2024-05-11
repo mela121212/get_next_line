@@ -42,16 +42,17 @@ To use the `get_next_line` function in your project, simply include the `"get_ne
 ```c
 #include "get_next_line.h"
 
-int main(void) {
-    int fd;
-    char *line;
+int main(void)
+{
+    int    fd;
+    char  *line;
 
-    fd = open("file.txt", O_RDONLY);
-    while ((line = get_next_line(fd)) != NULL) {
-        // Process the obtained line
+    fd = open("example.txt", O_RDONLY);
+    while ((line = get_next_line(fd)) != NULL)
+    {
         printf("%s\n", line);
-        free(line); // Free memory after use
+        free(line);
     }
     close(fd);
-    return 0;
+    return (0);
 }
