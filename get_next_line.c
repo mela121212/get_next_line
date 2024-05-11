@@ -1,72 +1,88 @@
-char	ft_free(char *str)
-{
-	free(str);
-	str = NULL;
-	return (NULL);
-}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: carmelag <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/01/26 12:37:23 by carmelag          #+#    #+#             */
+/*   Updated: 2024/01/26 12:38:03 by carmelag         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-char	fill_stash(int fd, char *stash, char *buffer)
-{
-	char	temp;
-	int	num_char;
+#include "get_next_line.h"
 
-	num_char = 1;
-	while (num_char != '\0')
+static char	*fill_stash(int fd, char *buff, char *stash)
+{
+	int		bytes;
+	char	*aux;
+
+	bytes = 1;
+	while (bytes > 0)
 	{
-		num_char = read(fd, buffer, BUFFER_SIZE);
-		if (num_char == -1)
-			return (0); // ??
-		if (num_char == 0)
-			break;
+		bytes = read(fd, buff, BUFFER_SIZE);
+		if (bytes == 0)
+			break ;
+		else if (bytes == -1)
+		{
+			free(stash);
+			return (NULL);
+		}
+		buff[bytes] = '\0';
 		if (!stash)
-			stash = ft_strdup(""); //SI USO CALLOC HAY QUE USAR EL STRDUP??
-		temp = stash;
-		stash = ft_strjoin(temp, buffer);
-		ft_free(temp);
-		if (strchr(buffer, '\n'))
-			break;
+			stash = ft_strdup("");
+		aux = stash;
+		stash = ft_strjoin(aux, buff);
+		free(aux);
+		aux = NULL;
+		if (ft_strchr (buff, '\n'))
+			break ;
 	}
 	return (stash);
 }
 
-char	extract_line(char *line, char *stash)
+static char	*extract_line(char *line)
 {
-	int	counter;
-	int	start;
-	int	end;
+	size_t	i;
+	char	*stash;
 
-	counter = 0;
-	while (line[counter] != '\n') && (line[counter] != '\0');
-		counter++;
-	if (line[counter] == '\0')
+	if (!line)
+		return (NULL);
+	i = 0;
+	while (line[i] != '\n' && line[i] != '\0')
+		i++;
+	if (line[i] == '\0' || line[1] == '\0')
 		return (0);
-	start = counter + 1;
-	end = ft_strlen(line) - 1;
-	stash = ft_substr(line, start, end);
-	if (stash == NULL)
-		ft_free(stash);
+	stash = ft_substr(line, i + 1, ft_strlen(line) - i);
+	if (*stash == '\0')
+	{
+		free(stash);
+		stash = NULL;
+	}
+	line[i + 1] = '\0';
 	return (stash);
 }
 
-char	*get_next_line(int fd) //por que puntero
+char	*get_next_line(int fd)
 {
-	char	*buf;
-	char	*stash; //static??
-	char	*line;
+	static char	*stash;
+	char		*line;
+	char		*buff;
 
-	if (fd < 0)
+	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
+	{
+		free(stash);
+		stash = NULL;
+		return (NULL);
+	}
+	buff = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	if (!buff)
 		return (0);
-	buf = (char *)malloc(sizeof(char)) * (BUFFER_SIZE + 1);
-	if (!buf)
-		return (0);
-	line = fill_stash(fd, stash, buffer);
-	ft_free(buf);
-	stash = extract_line(line, stash);
+	line = fill_stash(fd, buff, stash);
+	free(buff);
+	buff = NULL;
+	if (!line)
+		return (NULL);
+	stash = extract_line(line);
 	return (line);
 }
-
-int	main(void)
-{
-
-}
-
